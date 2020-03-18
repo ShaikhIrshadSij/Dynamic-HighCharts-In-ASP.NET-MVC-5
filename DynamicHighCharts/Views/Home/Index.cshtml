@@ -1,0 +1,72 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-12" id="lineCharts">
+
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        var lineSeries = [];
+        function groupBy(array, f) {
+            var groups = {};
+            array.forEach(function (o) {
+                var group = JSON.stringify(f(o));
+                groups[group] = groups[group] || [];
+                groups[group].push(o);
+            });
+            return Object.keys(groups).map(function (group) {
+                return groups[group];
+            });
+        }
+        $(document).ready(function () {
+            fetch('/Home/GetHighChartsData').then(res => res.json()).then(res => {
+                if (res.isSuccess) {
+                    var data = JSON.parse(res.data);
+                    var groupedData = groupBy(data, function (item) {
+                        return [item.Title]
+                    });
+                    lineSeries = [];
+                    for (var i = 0; i < groupedData.length; i++) {
+                        var name = groupedData[i][0]["Title"];
+                        var tempLine = [];
+                        for (var j = 0; j < groupedData[i].length; j++) {
+                            tempLine.push({
+                                "x": new Date(groupedData[i][j]["Date"]).valueOf(),
+                                "y": parseFloat(groupedData[i][j]["Value"])
+                            })
+                        }
+                        lineSeries.push({
+                            "name": name,
+                            "data": tempLine
+                        });
+                    }
+                    $('#lineCharts').highcharts({
+                        chart: {
+                            type: 'line',
+                            zoomType: 'x'
+                        },
+                        title: {
+                            text: 'Analysis Range',
+                        },
+                        xAxis: {
+                            type: 'datetime',
+                            labels: {
+                                format: "{value:%b %e }",
+                            }
+                        },
+                        yAxis: {
+                            title: {
+                                text: 'Analysis Range Values',
+                            },
+                        },
+                        series: lineSeries
+                    });
+                }
+            });
+        });
+    </script>
+}
