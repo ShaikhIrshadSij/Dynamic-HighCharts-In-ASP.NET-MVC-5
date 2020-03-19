@@ -60,6 +60,10 @@ namespace DynamicHighCharts.Controllers
         {
             try
             {
+                if (_context.Analyses.Count() == 0)
+                {
+                    AddExcelData();
+                }
                 var highChartsData = _context.Analyses.AsEnumerable().OrderBy(x => Convert.ToDateTime(x.Date)).GroupBy(x => new { x.Description, x.Date }).Select(x => new
                 {
                     Title = x.Key.Description,
